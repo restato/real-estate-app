@@ -14,14 +14,16 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-Future<Album> fetchAlbum() async {
-  final response = await http
-      .get(Uri.parse('https://jsonplaceholder.typicode.com/albums/1'));
+Future<List<Album>> fetchAlbum() async {
+  final response =
+      await http.get(Uri.parse('https://jsonplaceholder.typicode.com/albums'));
 
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
-    return Album.fromJson(jsonDecode(response.body));
+    final parsed = json.decode(response.body).cast<Map<String, dynamic>>();
+    return parsed.map<Album>((json) => Album.fromJson(json)).toList();
+    // return Album.fromJson(jsonDecode(response.body));
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
@@ -30,12 +32,12 @@ Future<Album> fetchAlbum() async {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<Album> futureAlbum;
+  late Future<List<Album>> futureAlbums;
 
   @override
   void initState() {
     super.initState();
-    futureAlbum = fetchAlbum();
+    futureAlbums = fetchAlbum();
   }
 
   @override
@@ -49,19 +51,22 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Fetch Data Example'),
         ),
-        body: Center(
-          child: FutureBuilder<Album>(
-            future: futureAlbum,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Text(snapshot.data!.title);
-              } else if (snapshot.hasError) {
-                return Text('${snapshot.error}');
-              }
-              // By default, show a loading spinner.
-              return const CircularProgressIndicator();
-            },
-          ),
+        body: FutureBuilder<List<Album>>(
+          future: futureAlbums,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (_, index) => Container(
+                      child: ListTile(
+                          title: Text("${snapshot.data![index].title}"),
+                          subtitle: Text("${snapshot.data![index].id}"))));
+            } else if (snapshot.hasError) {
+              return Text("${snapshot.error}");
+            }
+            // By default show a loading spinner.
+            return const CircularProgressIndicator();
+          },
         ),
       ),
     );
