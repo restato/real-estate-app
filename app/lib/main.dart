@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:app/album.dart';
 import 'package:app/transaction.dart';
+import 'package:app/transaction_card.dart';
 import 'package:xml2json/xml2json.dart';
 
 void main() => runApp(const MyApp());
@@ -80,10 +81,8 @@ class _MyAppState extends State<MyApp> {
             if (snapshot.hasData) {
               return ListView.builder(
                   itemCount: snapshot.data!.length,
-                  itemBuilder: (_, index) => Card(
-                      child: ListTile(
-                          title: Text("${snapshot.data![index].year}"),
-                          subtitle: Text("${snapshot.data![index].year}"))));
+                  itemBuilder: (_, index) =>
+                      TransactionCard(transaction: snapshot.data![index]));
             } else if (snapshot.hasError) {
               return Text("${snapshot.error}");
             }
