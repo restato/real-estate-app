@@ -22,62 +22,11 @@ Future<List<Transaction>> fetchTransaction() async {
   final response = await http.get(Uri.parse(
       'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=41135&type=json&pageNo=1&DEAL_YMD=202112'));
   if (response.statusCode == 200) {
-    var xmlString = '''
-    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<response>
-    <header>
-        <resultCode>00</resultCode>
-        <resultMsg>NORMAL SERVICE.</resultMsg>
-    </header>
-    <body>
-        <items>
-            <item><거래금액>   113,000</거래금액><거래유형>중개거래
-        </거래유형><건축년도>1994
-    </건축년도><년>2021
-</년><법정동> 분당동
-</법정동><아파트>샛별마을(우방)
-</아파트><월>12
-</월><일>24
-</일><전용면적>72.32
-</전용면적><중개사소재지>경기 성남분당구
-</중개사소재지><지번>38
-</지번><지역코드>41135
-</지역코드><층>13
-</층><해제사유발생일> 
-</해제사유발생일><해제여부> 
-</해제여부>
-</item>
- <item><거래금액>   113,000</거래금액><거래유형>중개거래
-        </거래유형><건축년도>1994
-    </건축년도><년>2021
-</년><법정동> 분당동
-</법정동><아파트>샛별마을(우방)
-</아파트><월>12
-</월><일>24
-</일><전용면적>72.32
-</전용면적><중개사소재지>경기 성남분당구
-</중개사소재지><지번>38
-</지번><지역코드>41135
-</지역코드><층>13
-</층><해제사유발생일> 
-</해제사유발생일><해제여부> 
-</해제여부>
-</item>
-</items>
-</body>
-</response>
-    ''';
-
-    // myTranformer.parse(xmlString);
     final utf16Body = utf8.decode(response.bodyBytes);
     myTranformer.parse(utf16Body);
-    // myTranformer.parse(response.body);
     var jsonString = myTranformer.toParker();
-    var A = jsonDecode(jsonString)['response']['body']['items'];
     final parsed = jsonDecode(jsonString)['response']['body']['items']['item']
         .cast<Map<String, dynamic>>();
-    // json.decode(jsonString).cast<Map<String, dynamic>>();
-    // final parsed = json.decode(response.body).cast<Map<String, dynamic>>();
     return parsed
         .map<Transaction>((json) => Transaction.fromJson(json))
         .toList();
