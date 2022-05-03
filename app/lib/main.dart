@@ -80,7 +80,7 @@ class _MyAppState extends State<MyApp> {
             if (snapshot.hasData) {
               return ListView.builder(
                   itemCount: snapshot.data!.length,
-                  itemBuilder: (_, index) => Container(
+                  itemBuilder: (_, index) => Card(
                       child: ListTile(
                           title: Text("${snapshot.data![index].year}"),
                           subtitle: Text("${snapshot.data![index].year}"))));
