@@ -9,6 +9,8 @@ import 'package:app/transaction_card.dart';
 import 'package:xml2json/xml2json.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:csv/csv.dart';
 
 void main() => runApp(const MyApp());
 
@@ -58,6 +60,7 @@ Future<List<Album>> fetchAlbum() async {
 class _MyAppState extends State<MyApp> {
   late Future<List<Album>> futureAlbums;
   late Future<List<Transaction>> futureTransactions;
+  late List<List<dynamic>> data;
 
   String _selectedDate = '';
   String _dateCount = '';
@@ -97,8 +100,17 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    loadAsset();
     futureAlbums = fetchAlbum();
     futureTransactions = fetchTransaction();
+  }
+
+  loadAsset() async {
+    var myData = await rootBundle.loadString("assets/res/road_code.csv");
+    List<List<dynamic>> csvTable = CsvToListConverter().convert(myData);
+    setState(() {
+      data = csvTable;
+    });
   }
 
   onSearch(String search) {
@@ -164,23 +176,24 @@ class _MyAppState extends State<MyApp> {
             //   ),
             // ),
             // ListView
-            Container(
-                color: Colors.grey.shade900,
-                child: FutureBuilder<List<Transaction>>(
-                  future: futureTransactions,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      return ListView.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (_, index) => TransactionCard(
-                              transaction: snapshot.data![index]));
-                    } else if (snapshot.hasError) {
-                      return Text("${snapshot.error}");
-                    }
-                    // By default show a loading spinner.
-                    return const CircularProgressIndicator();
-                  },
-                )),
+            Container(child: Text("${data}")),
+        // Container(
+        //     color: Colors.grey.shade900,
+        //     child: FutureBuilder<List<Transaction>>(
+        //       future: futureTransactions,
+        //       builder: (context, snapshot) {
+        //         if (snapshot.hasData) {
+        //           return ListView.builder(
+        //               itemCount: snapshot.data!.length,
+        //               itemBuilder: (_, index) => TransactionCard(
+        //                   transaction: snapshot.data![index]));
+        //         } else if (snapshot.hasError) {
+        //           return Text("${snapshot.error}");
+        //         }
+        //         // By default show a loading spinner.
+        //         return const CircularProgressIndicator();
+        //       },
+        //     )),
       ),
     );
   }

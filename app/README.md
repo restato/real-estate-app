@@ -39,3 +39,9 @@ flutter pub add http
 ```
 flutter pub add syncfusion_flutter_datepicker
 ```
+
+### File Read
+
+```
+flutter pub add path_provider
+```
