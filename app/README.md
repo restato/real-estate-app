@@ -33,3 +33,9 @@ flutter pub add http
 ## ListView
 
 * <https://docs.flutter.dev/cookbook/lists/basic-list>
+
+### date picker
+
+```
+flutter pub add syncfusion_flutter_datepicker
+```
