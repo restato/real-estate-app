@@ -101,6 +101,14 @@ class _MyAppState extends State<MyApp> {
     futureTransactions = fetchTransaction();
   }
 
+  onSearch(String search) {
+    setState(() {
+      // _foundedUsers = _users
+      //     .where((user) => user.name.toLowerCase().contains(search))
+      //     .toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -110,8 +118,27 @@ class _MyAppState extends State<MyApp> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Fetch Data Example'),
-        ),
+            elevation: 0,
+            backgroundColor: Colors.grey.shade900,
+            title: Container(
+                height: 38,
+                child: TextField(
+                  onChanged: (value) => onSearch(value),
+                  decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.grey[850],
+                      contentPadding: EdgeInsets.all(0),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey.shade500,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(50),
+                          borderSide: BorderSide.none),
+                      hintStyle:
+                          TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                      hintText: "지역 검색"),
+                ))),
         body:
             // Container(
             //   child: Column(
