@@ -45,3 +45,7 @@ flutter pub add syncfusion_flutter_datepicker
 ```
 flutter pub add path_provider
 ```
+
+### Searchable
+
+https://github.com/salim-lachdhaf/searchable_dropdown

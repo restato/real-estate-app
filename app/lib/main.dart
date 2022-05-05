@@ -10,7 +10,7 @@ import 'package:xml2json/xml2json.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:csv/csv.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 void main() => runApp(const MyApp());
 
@@ -21,11 +21,14 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-Future<List<Transaction>> fetchTransaction() async {
-  final myTranformer = Xml2Json();
+Future<List<Transaction>> fetchTransaction(String selectedRoadCode) async {
+  if (selectedRoadCode == '') {
+    selectedRoadCode = '41135';
+  }
 
+  final myTranformer = Xml2Json();
   final response = await http.get(Uri.parse(
-      'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=41135&type=json&pageNo=1&DEAL_YMD=202112'));
+      'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=${selectedRoadCode}&type=json&pageNo=1&DEAL_YMD=202112'));
   if (response.statusCode == 200) {
     final utf16Body = utf8.decode(response.bodyBytes);
     myTranformer.parse(utf16Body);
@@ -57,10 +60,22 @@ Future<List<Album>> fetchAlbum() async {
   }
 }
 
+class RoadCode {
+  String rcode;
+  String siGunGu;
+  RoadCode({required this.rcode, required this.siGunGu});
+}
+
 class _MyAppState extends State<MyApp> {
   late Future<List<Album>> futureAlbums;
   late Future<List<Transaction>> futureTransactions;
   late List<List<dynamic>> data;
+  // List<RoadCode> roadCodes = [];
+  List<String> roadCodes = [];
+  List<String> siGunGus = [];
+  String _selectedSiGunGu = '';
+  int _selectedRoadCodeIndex = -1;
+  String _selectedRoadCode = '';
 
   String _selectedDate = '';
   String _dateCount = '';
@@ -102,14 +117,21 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     loadAsset();
     futureAlbums = fetchAlbum();
-    futureTransactions = fetchTransaction();
+    futureTransactions = fetchTransaction(_selectedRoadCode);
   }
 
   loadAsset() async {
     var myData = await rootBundle.loadString("assets/res/road_code.csv");
-    List<List<dynamic>> csvTable = CsvToListConverter().convert(myData);
+    LineSplitter ls = new LineSplitter();
+    List<String> lines = ls.convert(myData);
     setState(() {
-      data = csvTable;
+      // data = csvTable;
+      for (var i = 0; i < lines.length; i++) {
+        roadCodes.add(lines[i].split(',')[0]);
+        siGunGus.add(lines[i].split(',')[1]);
+        // roadCodes.add(RoadCode(
+        //     rcode: lines[i].split(',')[0], siGunGu: lines[i].split(',')[1]));
+      }
     });
   }
 
@@ -132,25 +154,75 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
             elevation: 0,
             backgroundColor: Colors.grey.shade900,
-            title: Container(
-                height: 38,
-                child: TextField(
-                  onChanged: (value) => onSearch(value),
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.grey[850],
-                      contentPadding: EdgeInsets.all(0),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.grey.shade500,
+            title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 200,
+                    child: DropdownSearch<String>(
+                      mode: Mode.MENU,
+                      showSearchBox: true,
+                      showSelectedItems: true,
+                      items: siGunGus,
+                      dropdownSearchBaseStyle: TextStyle(color: Colors.white),
+                      dropdownSearchDecoration: InputDecoration(
+                        labelText: "시군구",
+                        labelStyle: TextStyle(color: Colors.white),
+                        hintText: "👇",
+                        hintStyle: TextStyle(color: Colors.white),
                       ),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(50),
-                          borderSide: BorderSide.none),
-                      hintStyle:
-                          TextStyle(fontSize: 14, color: Colors.grey.shade500),
-                      hintText: "지역 검색"),
-                ))),
+                      popupItemDisabled: (String s) => s.startsWith('I'),
+                      onChanged: (String? data) {
+                        setState(() {
+                          // TODO: Object로 처리하도록 수정
+                          _selectedSiGunGu = data!;
+                          _selectedRoadCodeIndex = siGunGus.indexWhere(
+                              (element) => element == _selectedSiGunGu);
+                          _selectedRoadCode = roadCodes[_selectedRoadCodeIndex];
+                          futureTransactions =
+                              fetchTransaction(_selectedRoadCode);
+                        });
+                      },
+                      // selectedItem: siGunGu[0],
+                    ),
+                  ),
+                  // Container(
+                  //   width: 200,
+                  //   child: DropdownSearch<String>(
+                  //     mode: Mode.MENU,
+                  //     showSelectedItems: true,
+                  //     items: ["성남시 분당구"],
+                  //     // ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
+                  //     dropdownSearchDecoration: InputDecoration(
+                  //       labelText: "Menu mode",
+                  //       hintText: "country in menu mode",
+                  //     ),
+                  //     popupItemDisabled: (String s) => s.startsWith('I'),
+                  //     onChanged: print,
+                  //     selectedItem: "성남시 분당구",
+                  //   ),
+                  // ),
+                ])
+            // title: Container(
+            //     height: 38,
+            //     child: TextField(
+            //       onChanged: (value) => onSearch(value),
+            //       decoration: InputDecoration(
+            //           filled: true,
+            //           fillColor: Colors.grey[850],
+            //           contentPadding: EdgeInsets.all(0),
+            //           prefixIcon: Icon(
+            //             Icons.search,
+            //             color: Colors.grey.shade500,
+            //           ),
+            //           border: OutlineInputBorder(
+            //               borderRadius: BorderRadius.circular(50),
+            //               borderSide: BorderSide.none),
+            //           hintStyle:
+            //               TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            //           hintText: "지역 검색"),
+            //     ))
+            ),
         body:
             // Container(
             //   child: Column(
@@ -176,24 +248,24 @@ class _MyAppState extends State<MyApp> {
             //   ),
             // ),
             // ListView
-            Container(child: Text("${data}")),
-        // Container(
-        //     color: Colors.grey.shade900,
-        //     child: FutureBuilder<List<Transaction>>(
-        //       future: futureTransactions,
-        //       builder: (context, snapshot) {
-        //         if (snapshot.hasData) {
-        //           return ListView.builder(
-        //               itemCount: snapshot.data!.length,
-        //               itemBuilder: (_, index) => TransactionCard(
-        //                   transaction: snapshot.data![index]));
-        //         } else if (snapshot.hasError) {
-        //           return Text("${snapshot.error}");
-        //         }
-        //         // By default show a loading spinner.
-        //         return const CircularProgressIndicator();
-        //       },
-        //     )),
+            // Container(child: Text("${roadCodes}")),
+            Container(
+                color: Colors.grey.shade900,
+                child: FutureBuilder<List<Transaction>>(
+                  future: futureTransactions,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return ListView.builder(
+                          itemCount: snapshot.data!.length,
+                          itemBuilder: (_, index) => TransactionCard(
+                              transaction: snapshot.data![index]));
+                    } else if (snapshot.hasError) {
+                      return Text("${snapshot.error}");
+                    }
+                    // By default show a loading spinner.
+                    return const CircularProgressIndicator();
+                  },
+                )),
       ),
     );
   }
