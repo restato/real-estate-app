@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
   List<String> siGunGus = [];
   String _selectedSiGunGu = '';
   int _selectedRoadCodeIndex = -1;
-  String _selectedRoadCode = '';
+  String _selectedRoadCode = '41135';
 
   String _selectedDate = '';
   String _dateCount = '';
@@ -164,6 +164,7 @@ class _MyAppState extends State<MyApp> {
                       showSearchBox: true,
                       showSelectedItems: true,
                       items: siGunGus,
+                      popupBackgroundColor: Colors.grey.shade900,
                       dropdownSearchBaseStyle: TextStyle(color: Colors.white),
                       dropdownSearchDecoration: InputDecoration(
                         labelText: "시군구",
@@ -183,7 +184,8 @@ class _MyAppState extends State<MyApp> {
                               fetchTransaction(_selectedRoadCode);
                         });
                       },
-                      // selectedItem: siGunGu[0],
+                      selectedItem: siGunGus[roadCodes.indexWhere(
+                          (element) => element == _selectedRoadCode)],
                     ),
                   ),
                   // Container(
@@ -263,7 +265,7 @@ class _MyAppState extends State<MyApp> {
                       return Text("${snapshot.error}");
                     }
                     // By default show a loading spinner.
-                    return const CircularProgressIndicator();
+                    return Center(child: const CircularProgressIndicator());
                   },
                 )),
       ),

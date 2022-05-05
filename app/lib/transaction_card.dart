@@ -30,7 +30,20 @@ class TransactionCard extends StatelessWidget {
               SizedBox(
                 height: 5,
               ),
-              Text(transaction.year, style: TextStyle(color: Colors.grey[500])),
+              Row(children: [
+                Text(
+                    '${transaction.year}년 ${transaction.month}월 ${transaction.day}일',
+                    style: TextStyle(color: Colors.grey[500])),
+                SizedBox(width: 10), // give it width
+                Text('${transaction.floor}층',
+                    style: TextStyle(color: Colors.grey[500])),
+                SizedBox(width: 10), // give it width
+                Text('${transaction.dedicatedArea}m2',
+                    style: TextStyle(color: Colors.grey[500])),
+                SizedBox(width: 10), // give it width
+                Text('${transaction.dong}',
+                    style: TextStyle(color: Colors.grey[500])),
+              ])
             ])
           ])
         ],
