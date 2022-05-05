@@ -143,6 +143,55 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  Widget _dropdownBuilder(BuildContext context, String? item) {
+    if (item == null) {
+      return Container();
+    }
+
+    return Container(
+      child: (item == null)
+          ? ListTile(
+              contentPadding: EdgeInsets.all(0),
+              leading: CircleAvatar(),
+              title: Text("No item selected"),
+            )
+          : ListTile(
+              contentPadding: EdgeInsets.all(0),
+              // leading: CircleAvatar(
+              //     // this does not work - throws 404 error
+              //     // backgroundImage: NetworkImage(item.avatar ?? ''),
+              //     ),
+              title: Text(item, style: TextStyle(color: Colors.white)),
+              // subtitle: Text(
+              //   item.createdAt.toString(),
+              // ),
+            ),
+    );
+  }
+
+  Widget _popupItemBuilder(
+      BuildContext context, String? item, bool isSelected) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      // decoration: !isSelected
+      //     ? null
+      //     : BoxDecoration(
+      //         border: Border.all(color: Theme.of(context).primaryColor),
+      //         borderRadius: BorderRadius.circular(5),
+      //         color: Colors.white,
+      //       ),
+      child: ListTile(
+        selected: isSelected,
+        title: Text(item ?? '', style: TextStyle(color: Colors.white)),
+        // subtitle: Text(item?.createdAt?.toString() ?? ''),
+        // leading: CircleAvatar(
+        //     // this does not work - throws 404 error
+        //     // backgroundImage: NetworkImage(item.avatar ?? ''),
+        //     ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -164,6 +213,23 @@ class _MyAppState extends State<MyApp> {
                       showSearchBox: true,
                       showSelectedItems: true,
                       items: siGunGus,
+                      dropdownBuilder: _dropdownBuilder,
+                      popupItemBuilder: _popupItemBuilder,
+                      searchFieldProps: TextFieldProps(
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+                          labelText: "검색어를 입력해주세요.",
+                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          floatingLabelStyle:
+                              TextStyle(color: Colors.grey[500]),
+                          fillColor: Colors.white,
+                          helperStyle: TextStyle(color: Colors.white),
+                          prefixStyle: TextStyle(color: Colors.white),
+                          hintStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
                       popupBackgroundColor: Colors.grey.shade900,
                       dropdownSearchBaseStyle: TextStyle(color: Colors.white),
                       dropdownSearchDecoration: InputDecoration(
