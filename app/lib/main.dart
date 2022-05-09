@@ -21,14 +21,14 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-Future<List<Transaction>> fetchTransaction(String selectedRoadCode) async {
+Future<List<Transaction>> fetchTransaction(
+    String selectedRoadCode, String selectedYear, String selectedMonth) async {
   if (selectedRoadCode == '') {
     selectedRoadCode = '41135';
   }
-
   final myTranformer = Xml2Json();
   final response = await http.get(Uri.parse(
-      'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=${selectedRoadCode}&type=json&pageNo=1&DEAL_YMD=202112'));
+      'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=${selectedRoadCode}&type=json&pageNo=1&DEAL_YMD=${selectedYear}${selectedMonth}'));
   if (response.statusCode == 200) {
     final utf16Body = utf8.decode(response.bodyBytes);
     myTranformer.parse(utf16Body);
@@ -66,6 +66,15 @@ class RoadCode {
   RoadCode({required this.rcode, required this.siGunGu});
 }
 
+class AboutWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('data'),
+    );
+  }
+}
+
 class _MyAppState extends State<MyApp> {
   late Future<List<Album>> futureAlbums;
   late Future<List<Transaction>> futureTransactions;
@@ -76,6 +85,31 @@ class _MyAppState extends State<MyApp> {
   String _selectedSiGunGu = '';
   int _selectedRoadCodeIndex = -1;
   String _selectedRoadCode = '41135';
+
+  final years = List<String>.generate(
+      20,
+      (i) => DateFormat('yyyy').format(DateTime.utc(
+            DateTime.now().year,
+            DateTime.now().month,
+          ).subtract(Duration(days: i * 365))));
+  final List<String> months = [
+    '01',
+    '02',
+    '03',
+    '04',
+    '05',
+    '06',
+    '07',
+    '08',
+    '09',
+    '10',
+    '11',
+    '12'
+  ];
+  String _selectedMonth =
+      DateFormat('MM').format(DateTime.utc(DateTime.now().month));
+  String _selectedYear =
+      DateFormat('yyyy').format(DateTime.utc(DateTime.now().year));
 
   String _selectedDate = '';
   String _dateCount = '';
@@ -117,7 +151,8 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     loadAsset();
     futureAlbums = fetchAlbum();
-    futureTransactions = fetchTransaction(_selectedRoadCode);
+    futureTransactions =
+        fetchTransaction(_selectedRoadCode, _selectedYear, _selectedMonth);
   }
 
   loadAsset() async {
@@ -246,30 +281,101 @@ class _MyAppState extends State<MyApp> {
                           _selectedRoadCodeIndex = siGunGus.indexWhere(
                               (element) => element == _selectedSiGunGu);
                           _selectedRoadCode = roadCodes[_selectedRoadCodeIndex];
-                          futureTransactions =
-                              fetchTransaction(_selectedRoadCode);
+
+                          futureTransactions = fetchTransaction(
+                              _selectedRoadCode, _selectedYear, _selectedMonth);
                         });
                       },
                       selectedItem: siGunGus[roadCodes.indexWhere(
                           (element) => element == _selectedRoadCode)],
                     ),
                   ),
-                  // Container(
-                  //   width: 200,
-                  //   child: DropdownSearch<String>(
-                  //     mode: Mode.MENU,
-                  //     showSelectedItems: true,
-                  //     items: ["성남시 분당구"],
-                  //     // ["Brazil", "Italia (Disabled)", "Tunisia", 'Canada'],
-                  //     dropdownSearchDecoration: InputDecoration(
-                  //       labelText: "Menu mode",
-                  //       hintText: "country in menu mode",
-                  //     ),
-                  //     popupItemDisabled: (String s) => s.startsWith('I'),
-                  //     onChanged: print,
-                  //     selectedItem: "성남시 분당구",
-                  //   ),
-                  // ),
+                  Container(
+                    width: 200,
+                    child: DropdownSearch<String>(
+                      mode: Mode.MENU,
+                      showSearchBox: true,
+                      showSelectedItems: true,
+                      items: years,
+                      dropdownBuilder: _dropdownBuilder,
+                      popupItemBuilder: _popupItemBuilder,
+                      searchFieldProps: TextFieldProps(
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+                          labelText: "검색어를 입력해주세요.",
+                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          floatingLabelStyle:
+                              TextStyle(color: Colors.grey[500]),
+                          fillColor: Colors.white,
+                          helperStyle: TextStyle(color: Colors.white),
+                          prefixStyle: TextStyle(color: Colors.white),
+                          hintStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      popupBackgroundColor: Colors.grey.shade900,
+                      dropdownSearchBaseStyle: TextStyle(color: Colors.white),
+                      dropdownSearchDecoration: InputDecoration(
+                        labelText: "년",
+                        labelStyle: TextStyle(color: Colors.white),
+                        hintText: "👇",
+                        hintStyle: TextStyle(color: Colors.white),
+                      ),
+                      popupItemDisabled: (String s) => s.startsWith('I'),
+                      onChanged: (String? data) {
+                        _selectedYear = data!;
+                        setState(() {
+                          futureTransactions = fetchTransaction(
+                              _selectedRoadCode, _selectedYear, _selectedMonth);
+                        });
+                      },
+                      selectedItem: _selectedYear,
+                    ),
+                  ),
+                  Container(
+                    width: 200,
+                    child: DropdownSearch<String>(
+                      mode: Mode.MENU,
+                      showSearchBox: true,
+                      showSelectedItems: true,
+                      items: months,
+                      dropdownBuilder: _dropdownBuilder,
+                      popupItemBuilder: _popupItemBuilder,
+                      searchFieldProps: TextFieldProps(
+                        style: TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+                          labelText: "검색어를 입력해주세요.",
+                          labelStyle: TextStyle(color: Colors.grey[500]),
+                          floatingLabelStyle:
+                              TextStyle(color: Colors.grey[500]),
+                          fillColor: Colors.white,
+                          helperStyle: TextStyle(color: Colors.white),
+                          prefixStyle: TextStyle(color: Colors.white),
+                          hintStyle: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      popupBackgroundColor: Colors.grey.shade900,
+                      dropdownSearchBaseStyle: TextStyle(color: Colors.white),
+                      dropdownSearchDecoration: InputDecoration(
+                        labelText: "월",
+                        labelStyle: TextStyle(color: Colors.white),
+                        hintText: "👇",
+                        hintStyle: TextStyle(color: Colors.white),
+                      ),
+                      popupItemDisabled: (String s) => s.startsWith('I'),
+                      onChanged: (String? data) {
+                        _selectedMonth = data!;
+                        setState(() {
+                          futureTransactions = fetchTransaction(
+                              _selectedRoadCode, _selectedYear, _selectedMonth);
+                        });
+                      },
+                      selectedItem: _selectedMonth,
+                    ),
+                  ),
                 ])
             // title: Container(
             //     height: 38,
@@ -325,7 +431,7 @@ class _MyAppState extends State<MyApp> {
                     if (snapshot.hasData) {
                       return ListView.builder(
                           itemCount: snapshot.data!.length,
-                          itemBuilder: (_, index) => TransactionCard(
+                          itemBuilder: (context, index) => TransactionCard(
                               transaction: snapshot.data![index]));
                     } else if (snapshot.hasError) {
                       return Text("${snapshot.error}");

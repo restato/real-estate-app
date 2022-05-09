@@ -1,7 +1,7 @@
 class Transaction {
   final String amount;
   final String yearOfConstruction;
-  final String type;
+  // final String type;
   final String dong;
   final String aptName;
   final String year;
@@ -13,24 +13,24 @@ class Transaction {
   final String floor;
 
   const Transaction(
-      {required this.amount,
-      required this.yearOfConstruction,
-      required this.type,
-      required this.dong,
-      required this.aptName,
-      required this.year,
-      required this.month,
-      required this.day,
-      required this.dedicatedArea,
-      required this.jibun,
-      required this.areaCode,
-      required this.floor});
+      {this.amount = "",
+      this.yearOfConstruction = "",
+      // this.type = "",
+      this.dong = "",
+      this.aptName = "",
+      this.year = "",
+      this.month = "",
+      this.day = "",
+      this.dedicatedArea = "",
+      this.jibun = "",
+      this.areaCode = "",
+      this.floor = ""});
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
     return Transaction(
       amount: json['거래금액'],
       yearOfConstruction: json['건축년도'],
-      type: json['거래유형'],
+      // type: json['거래유형'],
       dong: json['법정동'],
       aptName: json['아파트'],
       year: json['년'],

@@ -49,3 +49,9 @@ flutter pub add path_provider
 ### Searchable
 
 https://github.com/salim-lachdhaf/searchable_dropdown
+
+### 
+
+```
+flutter run -d chrome
+```
