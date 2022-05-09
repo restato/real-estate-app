@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 void main() => runApp(const MyApp());
 
@@ -21,23 +22,34 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-Future<List<Transaction>> fetchTransaction(
+class OpenAPIResult {
+  String numOfRows;
+  String totalCount;
+  List<Transaction> transactions;
+
+  OpenAPIResult(this.numOfRows, this.totalCount, this.transactions);
+}
+
+Future<OpenAPIResult> fetchTransaction(
     String selectedRoadCode, String selectedYear, String selectedMonth) async {
+  String pageNo = '1';
   if (selectedRoadCode == '') {
     selectedRoadCode = '41135';
   }
   final myTranformer = Xml2Json();
   final response = await http.get(Uri.parse(
-      'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=${selectedRoadCode}&type=json&pageNo=1&DEAL_YMD=${selectedYear}${selectedMonth}'));
+      'http://openapi.molit.go.kr:8081/OpenAPI_ToolInstallPackage/service/rest/RTMSOBJSvc/getRTMSDataSvcAptTrade?ServiceKey=vp5RvL5ncgGVGqhnbaNFu5DePN1bHRd%2BE3DNYN2WdueSS6y9rS1RDLi45r0tqc7BIDJvsEZaUMhYxOk%2BdcdRdA%3D%3D&LAWD_CD=${selectedRoadCode}&type=json&pageNo=${pageNo}&DEAL_YMD=${selectedYear}${selectedMonth}'));
   if (response.statusCode == 200) {
     final utf16Body = utf8.decode(response.bodyBytes);
     myTranformer.parse(utf16Body);
     var jsonString = myTranformer.toParker();
     final parsed = jsonDecode(jsonString)['response']['body']['items']['item']
         .cast<Map<String, dynamic>>();
-    return parsed
-        .map<Transaction>((json) => Transaction.fromJson(json))
-        .toList();
+    String numOfRows = jsonDecode(jsonString)['response']['body']['numOfRows'];
+    String totalCount =
+        jsonDecode(jsonString)['response']['body']['totalCount'];
+    return OpenAPIResult(numOfRows, totalCount,
+        parsed.map<Transaction>((json) => Transaction.fromJson(json)).toList());
   } else {
     throw Exception('Failed to load album');
   }
@@ -78,6 +90,9 @@ class AboutWidget extends StatelessWidget {
 class _MyAppState extends State<MyApp> {
   late Future<List<Album>> futureAlbums;
   late Future<List<Transaction>> futureTransactions;
+  late Future<OpenAPIResult> openAPIResult;
+  String _numOfRows = '';
+  String _totalCount = '';
   late List<List<dynamic>> data;
   // List<RoadCode> roadCodes = [];
   List<String> roadCodes = [];
@@ -151,7 +166,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     loadAsset();
     futureAlbums = fetchAlbum();
-    futureTransactions =
+    openAPIResult =
         fetchTransaction(_selectedRoadCode, _selectedYear, _selectedMonth);
   }
 
@@ -282,7 +297,7 @@ class _MyAppState extends State<MyApp> {
                               (element) => element == _selectedSiGunGu);
                           _selectedRoadCode = roadCodes[_selectedRoadCodeIndex];
 
-                          futureTransactions = fetchTransaction(
+                          openAPIResult = fetchTransaction(
                               _selectedRoadCode, _selectedYear, _selectedMonth);
                         });
                       },
@@ -326,7 +341,7 @@ class _MyAppState extends State<MyApp> {
                       onChanged: (String? data) {
                         _selectedYear = data!;
                         setState(() {
-                          futureTransactions = fetchTransaction(
+                          openAPIResult = fetchTransaction(
                               _selectedRoadCode, _selectedYear, _selectedMonth);
                         });
                       },
@@ -369,7 +384,7 @@ class _MyAppState extends State<MyApp> {
                       onChanged: (String? data) {
                         _selectedMonth = data!;
                         setState(() {
-                          futureTransactions = fetchTransaction(
+                          openAPIResult = fetchTransaction(
                               _selectedRoadCode, _selectedYear, _selectedMonth);
                         });
                       },
@@ -425,14 +440,19 @@ class _MyAppState extends State<MyApp> {
             // Container(child: Text("${roadCodes}")),
             Container(
                 color: Colors.grey.shade900,
-                child: FutureBuilder<List<Transaction>>(
-                  future: futureTransactions,
+                child: FutureBuilder<OpenAPIResult>(
+                  future: openAPIResult,
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
+                      _numOfRows = snapshot.data!.numOfRows;
+                      _totalCount = snapshot.data!.totalCount;
+                      print(_numOfRows);
+                      // print(snapshot.data!.transactions.length);
+                      print(_totalCount);
                       return ListView.builder(
-                          itemCount: snapshot.data!.length,
+                          itemCount: snapshot.data!.transactions.length,
                           itemBuilder: (context, index) => TransactionCard(
-                              transaction: snapshot.data![index]));
+                              transaction: snapshot.data!.transactions[index]));
                     } else if (snapshot.hasError) {
                       return Text("${snapshot.error}");
                     }
