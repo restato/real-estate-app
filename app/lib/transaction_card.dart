@@ -31,6 +31,9 @@ class TransactionCard extends StatelessWidget {
                 height: 5,
               ),
               Row(children: [
+                Text('${transaction.dong}',
+                    style: TextStyle(color: Colors.grey[500])),
+                SizedBox(width: 10), // give it width
                 Text(
                     '${transaction.year}년 ${transaction.month}월 ${transaction.day}일',
                     style: TextStyle(color: Colors.grey[500])),
@@ -39,9 +42,6 @@ class TransactionCard extends StatelessWidget {
                     style: TextStyle(color: Colors.grey[500])),
                 SizedBox(width: 10), // give it width
                 Text('${transaction.dedicatedArea}m2',
-                    style: TextStyle(color: Colors.grey[500])),
-                SizedBox(width: 10), // give it width
-                Text('${transaction.dong}',
                     style: TextStyle(color: Colors.grey[500])),
               ])
             ])
