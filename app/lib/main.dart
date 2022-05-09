@@ -101,6 +101,12 @@ class _MyAppState extends State<MyApp> {
   int _selectedRoadCodeIndex = -1;
   String _selectedRoadCode = '41135';
 
+  List<String> dropDown = <String>[
+    "날짜",
+    "금액",
+  ];
+  String _sortByName = '날짜'; // default
+
   final years = List<String>.generate(
       20,
       (i) => DateFormat('yyyy').format(DateTime.utc(
@@ -271,7 +277,7 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                   Container(
-                    width: 200,
+                    width: 100,
                     child: DropdownSearch<String>(
                       mode: Mode.MENU,
                       showSearchBox: true,
@@ -314,7 +320,7 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                   Container(
-                    width: 200,
+                    width: 100,
                     child: DropdownSearch<String>(
                       mode: Mode.MENU,
                       showSearchBox: true,
@@ -356,6 +362,25 @@ class _MyAppState extends State<MyApp> {
                       selectedItem: _selectedMonth,
                     ),
                   ),
+                  Container(
+                      child: DropdownButton<String>(
+                    underline: Container(),
+                    icon: Icon(Icons.sort, color: Colors.white),
+                    items:
+                        dropDown.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? data) {
+                      _sortByName = data!;
+                      setState(() {
+                        // openAPIResult = fetchTransaction(
+                        //     _selectedRoadCode, _selectedYear, _selectedMonth);
+                      });
+                    },
+                  ))
                 ])),
         body: Container(
             color: Colors.grey.shade900,
@@ -368,10 +393,25 @@ class _MyAppState extends State<MyApp> {
                   // print(_numOfRows);
                   // print(snapshot.data!.transactions.length);
                   // print(_totalCount);
+
+                  final transactions = snapshot.data!.transactions;
+
+                  if (_sortByName == '날짜') {
+                    // (b, a): descending
+                    // (a, b): ascending
+                    transactions.sort(
+                        (b, a) => int.parse(a.day).compareTo(int.parse(b.day)));
+                    transactions.reversed.toList();
+                  } else if (_sortByName == "금액") {
+                    transactions.sort((b, a) =>
+                        int.parse(a.amount.replaceAll(",", "")).compareTo(
+                            int.parse(b.amount.replaceAll(",", ""))));
+                    transactions.reversed.toList();
+                  }
                   return ListView.builder(
-                      itemCount: snapshot.data!.transactions.length,
-                      itemBuilder: (context, index) => TransactionCard(
-                          transaction: snapshot.data!.transactions[index]));
+                      itemCount: transactions.length,
+                      itemBuilder: (context, index) =>
+                          TransactionCard(transaction: transactions[index]));
                 } else if (snapshot.hasError) {
                   return Text("${snapshot.error}");
                 }
